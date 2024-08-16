@@ -21,9 +21,11 @@ def encode_bytecode(data):
 def scan_for_rats(decoded_data):
     # Example signatures (in reality, these would be more complex)
     known_rat_signatures = [
-        b'\x60\x89\xe5\x31\xc0\x31\xdb\x31\xc9\x31\xd2',  # Example shellcode signature
-        b'\xeb\xfe',  # Infinite loop, common in shellcode
-        b'\x90\x90\x90\x90',  # NOP sled, often used in exploits
+        b'\x60\x89\xe5\x31\xc0\x31\xdb\x31\xc9\x31\xd2', // Example shellcode signature
+        b'\xeb\xfe', // Infinite loop, common in shellcode
+        b'\x90\x90\x90\x90', // NOP sled, often used in exploits
+        b'\xcc\xcc\xcc\xcc', // INT3 instructions, potential breakpoint traps
+        b'\x6a\x02\x58\xcd\x80', // Syscall payload
     ]
 
     for sig in known_rat_signatures:
