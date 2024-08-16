@@ -1,68 +1,65 @@
 import os
-import re
-import struct
+import binascii
 
-# Function to scan a file for known RAT signatures
-def scan_for_signatures(file_path):
+# Function to decode bytecode for analysis
+def decode_bytecode(data):
+    try:
+        # Example decoding process (reverse a common encoding pattern)
+        decoded_data = binascii.unhexlify(data)
+        return decoded_data
+    except binascii.Error:
+        print("Error decoding data. It may not be properly encoded.")
+        return None
+
+# Function to encode data for pattern matching
+def encode_bytecode(data):
+    # Example encoding process (simple hex encoding)
+    encoded_data = binascii.hexlify(data).decode()
+    return encoded_data
+
+# Function to scan for known RAT signatures
+def scan_for_rats(decoded_data):
+    # Example signatures (in reality, these would be more complex)
     known_rat_signatures = [
-        b'\x60\x89\xe5\x31\xc0\x31\xdb\x31\xc9\x31\xd2',  # Example: shellcode signature
-        b'\xeb\xfe',  # Infinite loop (common in shellcode)
-        b'\x90\x90\x90\x90',  # NOP sled, often used in buffer overflow attacks
+        b'\x60\x89\xe5\x31\xc0\x31\xdb\x31\xc9\x31\xd2',  # Example shellcode signature
+        b'\xeb\xfe',  # Infinite loop, common in shellcode
+        b'\x90\x90\x90\x90',  # NOP sled, often used in exploits
     ]
 
-    with open(file_path, 'rb') as f:
-        file_data = f.read()
+    for sig in known_rat_signatures:
+        if sig in decoded_data:
+            print(f"Potential RAT detected: Signature {binascii.hexlify(sig).decode()} found.")
+            return True
+    print("No known RAT signatures detected.")
+    return False
 
-        for sig in known_rat_signatures:
-            if sig in file_data:
-                print(f"Potential RAT detected in {file_path}: Signature {sig.hex()} found.")
-                return True
-        print(f"No known RAT signatures found in {file_path}.")
-        return False
+# Main function to handle scanning
+def scan_bytecode(file_path):
+    try:
+        with open(file_path, 'rb') as file:
+            file_data = file.read()
 
-# Function to detect int3 traps and overflow patterns in bytecode
-def detect_int3_and_overflows(file_path):
-    with open(file_path, 'rb') as f:
-        file_data = f.read()
+            # Decode the bytecode for analysis
+            decoded_data = decode_bytecode(binascii.hexlify(file_data))
 
-        # Look for int3 (0xCC) instructions which might indicate a trap
-        int3_count = file_data.count(b'\xCC')
-        if int3_count > 0:
-            print(f"Int3 (0xCC) trap detected in {file_path}. Count: {int3_count}")
+            if decoded_data:
+                # Scan for known RATs in the decoded data
+                if scan_for_rats(decoded_data):
+                    print("RAT detected in the bytecode.")
+                else:
+                    print("No RAT detected in the bytecode.")
+            else:
+                print("Failed to decode the bytecode properly.")
+    except IOError as e:
+        print(f"Error reading file {file_path}: {e}")
 
-        # Check for common overflow patterns, e.g., large sequences of NOPs
-        overflow_patterns = [
-            b'\x90' * 100,  # Large NOP sled
-            b'\x41' * 100,  # Padding with 'A' (common in buffer overflow)
-        ]
-
-        for pattern in overflow_patterns:
-            if pattern in file_data:
-                print(f"Potential overflow pattern detected in {file_path}: {pattern[:10].hex()}...")
-
-# Function to scan firmware and memory for suspicious patterns
-def scan_firmware_and_memory():
-    # This is a placeholder function, as direct memory and firmware scanning would require low-level access.
-    # You would typically use specialized tools or drivers to access these areas.
-    print("Scanning firmware and memory is beyond the capabilities of this script without additional tools.")
-    print("Please use specialized tools like CHIPSEC or UEFItool for comprehensive scanning.")
-
-# Main function to scan a directory for suspicious files
-def scan_directory(directory):
-    for root, dirs, files in os.walk(directory):
-        for file in files:
-            file_path = os.path.join(root, file)
-            print(f"Scanning {file_path}...")
-            scan_for_signatures(file_path)
-            detect_int3_and_overflows(file_path)
-
-# Entry point
+# Entry point for the script
 def main():
-    directory_to_scan = input("Enter the directory to scan for hidden RATs: ").strip()
-    if os.path.isdir(directory_to_scan):
-        scan_directory(directory_to_scan)
+    file_path = input("Enter the path to the bytecode file: ").strip()
+    if os.path.isfile(file_path):
+        scan_bytecode(file_path)
     else:
-        print("Invalid directory. Please enter a valid directory path.")
+        print("Invalid file path. Please enter a valid file.")
 
 if __name__ == "__main__":
     main()
