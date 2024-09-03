@@ -15,7 +15,7 @@ Linux:
 
 Run the scanner with sudo:
 
-sudo ./scanner_program
+sudo ./based_charizard.py
 
 Or set the binary with the setuid bit (not generally recommended for security reasons):
 
