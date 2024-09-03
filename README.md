@@ -19,9 +19,9 @@ sudo ./based_charizard.py
 
 Or set the binary with the setuid bit (not generally recommended for security reasons):
 
-sudo chown root:root scanner_program
+sudo chown root:root based_charizard.py
 
-sudo chmod u+s scanner_program
+sudo chmod u+s based_charizard.py
 
 Windows:
 
